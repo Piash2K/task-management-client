@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Draggable } from "react-beautiful-dnd";
+import { Draggable } from "@hello-pangea/dnd";
 import { format } from "date-fns";
 import { PencilIcon, TrashIcon, XCircleIcon } from "@heroicons/react/24/outline";
 import axios from "axios";
@@ -39,6 +39,8 @@ const TaskCard = ({ task, index, onTaskUpdate, onTaskDelete }) => {
         setLoading(false);
       });
   };
+  console.log(task._id);
+  console.log(task); // Check the structure of the task object
 
   return (
     <>

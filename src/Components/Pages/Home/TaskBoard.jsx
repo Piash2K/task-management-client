@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState, useMemo } from "react";
-import { DragDropContext, Droppable } from "react-beautiful-dnd";
+import { DragDropContext, Droppable } from "@hello-pangea/dnd";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import TaskColumn from "./TaskColumn";
@@ -44,7 +44,7 @@ const TaskBoard = () => {
 
       setColumns(groupedTasks);
     }
-  }, [tasks.length]);
+  }, [tasks]);
 
   const onDragEnd = async (result) => {
     const { source, destination, draggableId } = result;

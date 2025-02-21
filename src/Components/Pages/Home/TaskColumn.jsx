@@ -1,4 +1,4 @@
-import { Droppable } from "react-beautiful-dnd";
+import { Droppable } from "@hello-pangea/dnd";
 import TaskCard from "./TaskCard";
 
 const TaskColumn = ({ column, queryClient, userEmail }) => {
@@ -9,7 +9,7 @@ const TaskColumn = ({ column, queryClient, userEmail }) => {
   const handleTaskDelete = () => {
     queryClient.invalidateQueries(["tasks", userEmail]);
   };
-  // console.log(column.id)
+  console.log(column.id)
   return (
     <div className="bg-gray-200 rounded-lg p-4">
       <h2 className="text-lg font-bold mb-4">{column.title}</h2>
