@@ -2,12 +2,14 @@ import { useContext } from "react";
 import AddTaskForm from "./AddTaskForm";
 import TaskBoard from "./TaskBoard";
 import { AuthContext } from "../../Provider/Authprovider";
+import { Helmet } from "react-helmet";
 
 const Home = () => {
     const { user } = useContext(AuthContext);
 
     return (
         <div>
+            <Helmet><title>Home | TaskManager</title></Helmet>
             <main className="py-6 sm:px-6 lg:px-8">
                 {user ? (
                     <div>

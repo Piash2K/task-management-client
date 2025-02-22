@@ -46,7 +46,6 @@ const TaskCard = ({ task, index, setTasks }) => {
       socket.off("taskAdded");
     };
   }, [setTasks]);
-  
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
@@ -96,9 +95,7 @@ const TaskCard = ({ task, index, setTasks }) => {
               ref={provided.innerRef}
               {...provided.draggableProps}
               {...provided.dragHandleProps}
-              className={`bg-white rounded-lg shadow-sm p-4 mb-2 ${
-                snapshot.isDragging ? "shadow-lg" : ""
-              }`}
+              className={`bg-white rounded-lg shadow-sm p-4 mb-2 ${snapshot.isDragging ? "shadow-lg" : ""}`}
             >
               <div className="flex justify-between items-start">
                 <h3 className="font-medium text-gray-900">{task.title}</h3>
@@ -120,6 +117,13 @@ const TaskCard = ({ task, index, setTasks }) => {
                 </div>
               </div>
               {task.description && <p className="text-sm text-gray-600 mt-2">{task.description}</p>}
+              <div className="flex items-center mt-2">
+                {task.category && (
+                  <span className="inline-block px-3 py-1 text-xs font-semibold text-white bg-teal-600 rounded-full">
+                    {task.category}
+                  </span>
+                )}
+              </div>
               <div className="mt-4 text-xs text-gray-500">
                 Created: {format(new Date(task.timestamp), "MMM d, yyyy")}
               </div>
