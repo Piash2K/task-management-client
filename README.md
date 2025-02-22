@@ -1,11 +1,10 @@
-Here's a README structure based on your requirements:
 
 ---
 
 # Task Management Application
 
 ## Short Description:
-This is a task management web application that allows users to add, edit, delete, and reorder tasks in a drag-and-drop interface. Users can categorize their tasks into three sections: To-Do, In Progress, and Done. The app features Firebase Authentication, MongoDB for persistence, and real-time task synchronization.
+This is a task management web application that allows users to add, edit, delete, and reorder tasks in a drag-and-drop interface. Tasks are categorized into three sections: To-Do, In Progress, and Done. It features Firebase Authentication, MongoDB for persistence, and real-time task synchronization.
 
 ## Live Links:
 - [Live Link](https://task-management-2k25.web.app/)
@@ -13,15 +12,18 @@ This is a task management web application that allows users to add, edit, delete
 - [GitHub Server Link](https://github.com/Piash2K/task-management-server.git)
 
 ## Dependencies:
-- Firebase Authentication
-- MongoDB
-- Express.js
-- Vite.js
-- React.js
-- react-beautiful-dnd (or other drag-and-drop library)
-- Axios (for HTTP requests)
-- react-router-dom
-- Tailwind CSS (for styling)
+- **Firebase Authentication**: For user authentication
+- **MongoDB**: Database for task storage
+- **Express.js**: Server-side framework for handling API requests
+- **Vite.js**: Frontend build tool
+- **React.js**: JavaScript library for building user interfaces
+- **react-beautiful-dnd**: Drag-and-drop library for task reordering
+- **Axios**: HTTP client for making requests
+- **react-router-dom**: For routing within the app
+- **tailwindcss**: Utility-first CSS framework
+- **react-toastify**: For displaying toast notifications
+- **socket.io-client**: For real-time updates via websockets
+- **sweetalert2**: For alert dialogs
 
 ## Installation Steps:
 1. Clone the repository:
@@ -59,6 +61,6 @@ This is a task management web application that allows users to add, edit, delete
 ## Technologies Used:
 - **Frontend:** React.js, Vite.js, Tailwind CSS, react-beautiful-dnd
 - **Backend:** Express.js, MongoDB, Firebase Authentication
-- **Additional:** Axios, react-router-dom, dotenv
+- **Additional:** Axios, react-router-dom, dotenv, socket.io-client, sweetalert2, react-toastify
 
 ---
