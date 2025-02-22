@@ -56,43 +56,43 @@ const AddTaskForm = ({ onAddTask, userEmail }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-4 mb-4">
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700">Task Title</label>
+    <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-xl p-6 mb-8 w-full sm:w-11/12 md:w-3/4 lg:w-9/12  mx-auto">
+      <div className="mb-6">
+        <label className="block text-lg font-semibold text-gray-800 mb-2">Task Title</label>
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           maxLength={50}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+          className="mt-1 block w-full rounded-lg border-2 border-gray-300 bg-gray-50 focus:ring-teal-500 focus:border-teal-500 shadow-md focus:outline-none px-4 py-2 text-gray-700 placeholder-gray-500"
           placeholder="Enter task title"
           required
         />
       </div>
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700">Description (optional)</label>
+      <div className="mb-6">
+        <label className="block text-lg font-semibold text-gray-800 mb-2">Description (optional)</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           maxLength={200}
-          rows={3}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+          rows={4}
+          className="mt-1 block w-full rounded-lg border-2 border-gray-300 bg-gray-50 focus:ring-teal-500 focus:border-teal-500 shadow-md focus:outline-none px-4 py-2 text-gray-700 placeholder-gray-500"
           placeholder="Enter task description"
         />
       </div>
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700">Category</label>
+      <div className="mb-6">
+        <label className="block text-lg font-semibold text-gray-800 mb-2">Category</label>
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+          className="mt-1 block w-full rounded-lg border-2 border-gray-300 bg-gray-50 focus:ring-teal-500 focus:border-teal-500 shadow-md focus:outline-none px-4 py-2 text-gray-700"
         >
           <option value="to-do">To Do</option>
           <option value="in-progress">In Progress</option>
           <option value="done">Done</option>
         </select>
       </div>
-      <button type="submit" className="w-full bg-blue-500 text-white py-2 px-4 rounded-md">
+      <button type="submit" className="w-full bg-teal-600 text-white py-3 px-6 rounded-lg text-lg font-semibold shadow-lg hover:bg-teal-700 transition duration-300">
         Add Task
       </button>
     </form>

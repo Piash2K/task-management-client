@@ -8,12 +8,12 @@ const Home = () => {
 
     return (
         <div>
-            <main className="w-9/12 mx-auto py-6 sm:px-6 lg:px-8">
+            <main className="py-6 sm:px-6 lg:px-8">
                 {user ? (
-                    <>
+                    <div>
                         <AddTaskForm onAddTask={(task) => console.log('New task:', task)} />
-                        <TaskBoard />
-                    </>
+                        <div  className="w-9/12 mx-auto"><TaskBoard /></div>
+                    </div>
                 ) : (
                     <p className="text-center text-lg text-gray-600 mt-10">
                         Please <span className="font-semibold text-blue-500">log in</span> to manage your tasks.
