@@ -1,14 +1,11 @@
-import  { useContext, useState } from 'react';
+import { useContext, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import {  signInWithPopup } from 'firebase/auth';
+import { signInWithPopup } from 'firebase/auth';
 import { AuthContext } from '../../Provider/Authprovider';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import Swal from 'sweetalert2';
 import { Helmet } from 'react-helmet';
 import auth from '../../Firebase/firebase.config';
-
-
-
 
 const Login = () => {
     const { signInWithEmail, googleProvider } = useContext(AuthContext);
@@ -19,8 +16,23 @@ const Login = () => {
 
     const handleGoogleSignIn = () => {
         signInWithPopup(auth, googleProvider)
-            .then((result) => {
+            .then(async (result) => {
                 const user = result.user;
+                const userData = {
+                    uid: user.uid,
+                    email: user.email,
+                    displayName: user.displayName,
+                    createdAt: user.metadata.creationTime,
+                    lastLogin: new Date().toISOString()
+                };
+                
+                const res = await fetch('http://localhost:5000/users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+                await res.json();
+                
                 Swal.fire({
                     title: 'Welcome back!',
                     text: `Hello, ${user.displayName || user.email}`,
@@ -46,9 +58,17 @@ const Login = () => {
         const email = e.target.email.value;
         const password = e.target.password.value;
         setEmail(email);
+
         signInWithEmail(email, password)
-            .then((result) => {
+            .then(async (result) => {
                 const user = result.user;
+                
+                await fetch('http://localhost:5000/users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: user.email, lastLogin: new Date().toISOString() })
+                });
+                
                 Swal.fire({
                     title: 'Login Successful!',
                     text: `Welcome back, ${user.email}`,

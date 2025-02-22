@@ -26,7 +26,7 @@ const Register = () => {
         if (!/(?=.*\d)/.test(password)) {
             return "Password must contain at least one number.";
         }
-        if (!/(?=.[!@#$%^&(),.?":{}|<>])/.test(password)) {
+        if (!/(?=.*[!@#$%^&(),.?":{}|<>])/.test(password)) {
             return "Password must contain at least one special character.";
         }
         return '';
@@ -38,6 +38,8 @@ const Register = () => {
         const email = e.target.email.value;
         const photo = e.target.photo.value;
         const password = e.target.password.value;
+        const createdAt = new Date().toISOString();
+        const lastLogin = createdAt;
 
         const validationError = validatePassword(password);
         if (validationError) {
@@ -48,7 +50,7 @@ const Register = () => {
         setPasswordError('');
         createNewUser(email, password)
             .then((result) => {
-                setUser(result.user); 
+                setUser(result.user);
                 updateUserProfile({
                     photoURL: photo,
                     displayName: name,
@@ -59,6 +61,17 @@ const Register = () => {
                             displayName: name,
                             photoURL: photo,
                         }));
+                        fetch('http://localhost:5000/users', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                uid: result.user.uid,
+                                email,
+                                displayName: name,
+                                createdAt,
+                                lastLogin,
+                            }),
+                        });
                         Swal.fire({
                             title: 'Registration Successful!',
                             text: `Welcome ${name}! Your account has been created successfully.`,
@@ -72,8 +85,7 @@ const Register = () => {
                     });
             })
             .catch((error) => {
-                const errorMessage = error.message;
-                setError(errorMessage);
+                setError(error.message);
                 Swal.fire({
                     title: 'Registration Failed',
                     text: 'There was an error creating your account. Please try again.',
@@ -84,9 +96,9 @@ const Register = () => {
     };
 
     return (
-        <div className="flex justify-center items-center min-h-screen  px-4">
+        <div className="flex justify-center items-center min-h-screen px-4">
             <Helmet><title>Register | TaskManager</title></Helmet>
-            <div className="w-full max-w-md  border border-gray-200 shadow-lg rounded-lg p-6">
+            <div className="w-full max-w-md border border-gray-200 shadow-lg rounded-lg p-6">
                 <h2 className="text-2xl lg:text-4xl font-bold text-center mb-6">Register Now!</h2>
                 <form onSubmit={handleRegister} className="space-y-4">
                     <div className="form-control">
