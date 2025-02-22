@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState, useMemo } from "react";
-import { DragDropContext, Droppable } from "@hello-pangea/dnd";
+import { DragDropContext } from "@hello-pangea/dnd";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import TaskColumn from "./TaskColumn";
@@ -7,19 +7,25 @@ import { AuthContext } from "../../Provider/Authprovider";
 import { RotatingLines } from "react-loader-spinner";
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:5000");
+const socket = io("https://task-management-server-o7it.onrender.com", {
+  transports: ["websocket"],
+  secure: true,
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 3000,
+});
 
 const COLUMN_ORDER = ['to-do', 'in-progress', 'done'];
 
 const fetchTasks = async (email) => {
-  const res = await axios.get(`http://localhost:5000/tasks/${email}`);
+  const res = await axios.get(`https://task-management-server-o7it.onrender.com/tasks/${email}`);
   return res.data;
 };
 
 const updateTaskOrder = async (taskId, category, order) => {
-  return axios.patch(`http://localhost:5000/tasks/category/${taskId}`, {
-    category: category,
-    order: order,
+  return axios.patch(`https://task-management-server-o7it.onrender.com/tasks/category/${taskId}`, {
+    category,
+    order,
   });
 };
 
@@ -37,11 +43,10 @@ const TaskBoard = () => {
 
   useEffect(() => {
     const initializeColumns = () => {
-      const initialColumns = {};
-      COLUMN_ORDER.forEach((category) => {
-        initialColumns[category] = { id: category, title: category.replace("-", " "), tasks: [] };
-      });
-      return initialColumns;
+      return COLUMN_ORDER.reduce((acc, category) => {
+        acc[category] = { id: category, title: category.replace("-", " "), tasks: [] };
+        return acc;
+      }, {});
     };
 
     if (tasks.length) {
@@ -67,19 +72,94 @@ const TaskBoard = () => {
     if (!user?.email) return;
 
     socket.on("taskAdded", (newTask) => {
+      if (newTask.userEmail === user.email) {
+        setColumns((prevColumns) => {
+          const updatedColumns = { ...prevColumns };
+          const column = updatedColumns[newTask.category];
+          if (column && !column.tasks.find((task) => task._id === newTask._id)) {
+            column.tasks.push(newTask);
+            column.tasks.sort((a, b) => a.order - b.order);
+          }
+          return updatedColumns;
+        });
+      }
+    });
+
+    socket.on("taskDeleted", (taskId) => {
       setColumns((prevColumns) => {
         const updatedColumns = { ...prevColumns };
-        const column = updatedColumns[newTask.category];
-        if (column && !column.tasks.find((task) => task._id === newTask._id)) {
-          column.tasks.push(newTask);
-          column.tasks.sort((a, b) => a.order - b.order);
-        }
+        Object.values(updatedColumns).forEach((column) => {
+          column.tasks = column.tasks.filter((task) => task._id !== taskId);
+        });
         return updatedColumns;
+      });
+    });
+
+    socket.on("taskUpdated", (updatedTask) => {
+      if (updatedTask.userEmail === user.email) {
+        setColumns((prevColumns) => {
+          const updatedColumns = { ...prevColumns };
+          const column = updatedColumns[updatedTask.category];
+          if (column) {
+            column.tasks = column.tasks.map((task) =>
+              task._id === updatedTask._id ? updatedTask : task
+            );
+          }
+          return updatedColumns;
+        });
+      }
+    });
+
+    socket.on("taskCategoryUpdated", ({ _id, category, userEmail }) => {
+      if (userEmail === user.email) {
+        setColumns((prevColumns) => {
+          const updatedColumns = { ...prevColumns };
+          let movedTask = null;
+
+          Object.values(updatedColumns).forEach((column) => {
+            const index = column.tasks.findIndex((task) => task._id === _id);
+            if (index !== -1) {
+              movedTask = column.tasks.splice(index, 1)[0];
+            }
+          });
+
+          if (movedTask) {
+            movedTask.category = category;
+            updatedColumns[category].tasks.push(movedTask);
+            updatedColumns[category].tasks.sort((a, b) => a.order - b.order);
+          }
+
+          return updatedColumns;
+        });
+      }
+    });
+
+    socket.on("tasksReordered", (updatedTasks) => {
+      updatedTasks.forEach((task) => {
+        if (task.userEmail === user.email) {
+          setColumns((prevColumns) => {
+            const updatedColumns = { ...prevColumns };
+
+            const column = updatedColumns[task.category];
+            if (column) {
+              const index = column.tasks.findIndex((t) => t._id === task._id);
+              if (index !== -1) {
+                column.tasks[index] = task;
+              }
+            }
+
+            return updatedColumns;
+          });
+        }
       });
     });
 
     return () => {
       socket.off("taskAdded");
+      socket.off("taskDeleted");
+      socket.off("taskUpdated");
+      socket.off("taskCategoryUpdated");
+      socket.off("tasksReordered");
     };
   }, [user?.email]);
 
@@ -87,26 +167,13 @@ const TaskBoard = () => {
     const { source, destination, draggableId } = result;
 
     if (!destination) return;
-
-    if (
-      source.droppableId === destination.droppableId &&
-      source.index === destination.index
-    ) {
-      return;
-    }
+    if (source.droppableId === destination.droppableId && source.index === destination.index) return;
 
     const updatedColumns = { ...columns };
 
-    const [movedTask] = updatedColumns[source.droppableId].tasks.splice(
-      source.index,
-      1
-    );
+    const [movedTask] = updatedColumns[source.droppableId].tasks.splice(source.index, 1);
 
-    updatedColumns[destination.droppableId].tasks.splice(
-      destination.index,
-      0,
-      movedTask
-    );
+    updatedColumns[destination.droppableId].tasks.splice(destination.index, 0, movedTask);
 
     movedTask.category = destination.droppableId;
     movedTask.order = destination.index;
@@ -116,6 +183,8 @@ const TaskBoard = () => {
     try {
       await updateTaskOrder(draggableId, destination.droppableId, destination.index);
       queryClient.invalidateQueries(["tasks", user.email]);
+      socket.emit("taskCategoryUpdated", { _id: draggableId, category: destination.droppableId, userEmail: user.email });
+
     } catch (error) {
       console.error("Failed to update task order:", error);
       setColumns(columns);

@@ -4,8 +4,7 @@ import Swal from "sweetalert2";
 import { AuthContext } from "../../Provider/Authprovider";
 import { io } from "socket.io-client";
 
-// Initialize WebSocket connection
-const socket = io("http://localhost:5000");
+const socket = io("https://task-management-server-o7it.onrender.com");
 
 const AddTaskForm = ({ onAddTask, userEmail }) => {
   const [title, setTitle] = useState("");
@@ -25,24 +24,35 @@ const AddTaskForm = ({ onAddTask, userEmail }) => {
       userEmail: user.email,
     };
 
-    axios.post("http://localhost:5000/tasks", newTask).then((response) => {
-      onAddTask(response.data); // Update the task list immediately in the parent component
-      setTitle("");
-      setDescription("");
-      setCategory("to-do");
+    axios
+      .post("https://task-management-server-o7it.onrender.com/tasks", newTask)
+      .then((response) => {
+        onAddTask(response.data);
+        setTitle("");
+        setDescription("");
+        setCategory("to-do");
 
-      // Emit task added event over WebSocket to notify other clients
-      socket.emit("taskAdded", response.data);
+        socket.emit("taskAdded", response.data);
 
-      // Show SweetAlert2 success message
-      Swal.fire({
-        title: "Success!",
-        text: "Task added successfully!",
-        icon: "success",
-        confirmButtonColor: "#3085d6",
-        confirmButtonText: "OK",
+        Swal.fire({
+          title: "Success!",
+          text: "Task added successfully!",
+          icon: "success",
+          confirmButtonColor: "#3085d6",
+          confirmButtonText: "OK",
+        });
+      })
+      .catch((error) => {
+        console.error("Error adding task:", error);
+
+        Swal.fire({
+          title: "Error!",
+          text: "There was an issue adding the task. Please try again.",
+          icon: "error",
+          confirmButtonColor: "#d33",
+          confirmButtonText: "OK",
+        });
       });
-    });
   };
 
   return (

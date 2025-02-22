@@ -26,7 +26,7 @@ const Login = () => {
                     lastLogin: new Date().toISOString()
                 };
                 
-                const res = await fetch('http://localhost:5000/users', {
+                const res = await fetch('https://task-management-server-o7it.onrender.com/users', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(userData)
@@ -63,7 +63,7 @@ const Login = () => {
             .then(async (result) => {
                 const user = result.user;
                 
-                await fetch('http://localhost:5000/users', {
+                await fetch('https://task-management-server-o7it.onrender.com/users', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email: user.email, lastLogin: new Date().toISOString() })

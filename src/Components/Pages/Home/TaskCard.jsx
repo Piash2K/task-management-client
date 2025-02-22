@@ -8,7 +8,7 @@ import Swal from "sweetalert2";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:5000");
+const socket = io("https://task-management-server-o7it.onrender.com");
 
 const TaskCard = ({ task, index, setTasks }) => {
   const queryClient = useQueryClient();
@@ -50,7 +50,7 @@ const TaskCard = ({ task, index, setTasks }) => {
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      await axios.delete(`http://localhost:5000/tasks/${task._id}`);
+      await axios.delete(`https://task-management-server-o7it.onrender.com/tasks/${task._id}`);
     },
     onSuccess: () => {
       socket.emit("deleteTask", task._id);
@@ -68,7 +68,7 @@ const TaskCard = ({ task, index, setTasks }) => {
   const updateMutation = useMutation({
     mutationFn: async () => {
       const response = await axios.patch(
-        `http://localhost:5000/tasks/${task._id}`,
+        `https://task-management-server-o7it.onrender.com/tasks/${task._id}`,
         updatedTask
       );
       return response.data;
