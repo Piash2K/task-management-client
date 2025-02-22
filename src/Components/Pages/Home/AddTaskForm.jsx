@@ -1,12 +1,17 @@
 import { useContext, useState } from "react";
 import axios from "axios";
+import Swal from "sweetalert2";
 import { AuthContext } from "../../Provider/Authprovider";
+import { io } from "socket.io-client";
+
+// Initialize WebSocket connection
+const socket = io("http://localhost:5000");
 
 const AddTaskForm = ({ onAddTask, userEmail }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("to-do");
-  const {user} = useContext(AuthContext)
+  const { user } = useContext(AuthContext);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -21,10 +26,22 @@ const AddTaskForm = ({ onAddTask, userEmail }) => {
     };
 
     axios.post("http://localhost:5000/tasks", newTask).then((response) => {
-      onAddTask(response.data);
+      onAddTask(response.data); // Update the task list immediately in the parent component
       setTitle("");
       setDescription("");
       setCategory("to-do");
+
+      // Emit task added event over WebSocket to notify other clients
+      socket.emit("taskAdded", response.data);
+
+      // Show SweetAlert2 success message
+      Swal.fire({
+        title: "Success!",
+        text: "Task added successfully!",
+        icon: "success",
+        confirmButtonColor: "#3085d6",
+        confirmButtonText: "OK",
+      });
     });
   };
 

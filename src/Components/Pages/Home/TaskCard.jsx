@@ -1,11 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Draggable } from "@hello-pangea/dnd";
 import { format } from "date-fns";
 import { PencilIcon, TrashIcon, XCircleIcon } from "@heroicons/react/24/outline";
 import axios from "axios";
-import { Oval } from "react-loader-spinner"; // Importing the Oval loader
+import { Oval } from "react-loader-spinner";
+import Swal from "sweetalert2";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { io } from "socket.io-client";
 
-const TaskCard = ({ task, index, onTaskUpdate, onTaskDelete }) => {
+const socket = io("http://localhost:5000");
+
+const TaskCard = ({ task, index, setTasks }) => {
+  const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [updatedTask, setUpdatedTask] = useState({
     title: task.title,
@@ -13,34 +19,73 @@ const TaskCard = ({ task, index, onTaskUpdate, onTaskDelete }) => {
     category: task.category,
     order: task.order,
   });
-  const [loading, setLoading] = useState(false);
 
-  const handleDelete = () => {
-    setLoading(true);
-    axios.delete(`http://localhost:5000/tasks/${task._id}`)
-      .then(() => {
-        onTaskDelete(task._id);
-        setLoading(false);
-      })
-      .catch(() => {
-        setLoading(false);
+  useEffect(() => {
+    socket.on("taskUpdated", (updatedTask) => {
+      setTasks((prevTasks) =>
+        prevTasks.map((t) => (t._id === updatedTask._id ? updatedTask : t))
+      );
+    });
+  
+    socket.on("taskDeleted", (taskId) => {
+      setTasks((prevTasks) => prevTasks.filter((t) => t._id !== taskId));
+    });
+  
+    socket.on("taskAdded", (newTask) => {
+      setTasks((prevTasks) => {
+        if (!prevTasks.some((task) => task._id === newTask._id)) {
+          return [...prevTasks, newTask];
+        }
+        return prevTasks;
       });
-  };
+    });
+  
+    return () => {
+      socket.off("taskUpdated");
+      socket.off("taskDeleted");
+      socket.off("taskAdded");
+    };
+  }, [setTasks]);
+  
 
-  const handleUpdate = () => {
-    setLoading(true);
-    axios.patch(`http://localhost:5000/tasks/${task._id}`, updatedTask)
-      .then((response) => {
-        onTaskUpdate(response.data);
-        setIsEditing(false);
-        setLoading(false);
-      })
-      .catch(() => {
-        setLoading(false);
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      await axios.delete(`http://localhost:5000/tasks/${task._id}`);
+    },
+    onSuccess: () => {
+      socket.emit("deleteTask", task._id);
+      queryClient.invalidateQueries(["tasks"]);
+      Swal.fire({
+        title: "Deleted!",
+        text: "Task has been deleted successfully!",
+        icon: "success",
+        confirmButtonColor: "#3085d6",
+        confirmButtonText: "OK",
       });
-  };
-  console.log(task._id);
-  console.log(task); // Check the structure of the task object
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async () => {
+      const response = await axios.patch(
+        `http://localhost:5000/tasks/${task._id}`,
+        updatedTask
+      );
+      return response.data;
+    },
+    onSuccess: (data) => {
+      socket.emit("updateTask", data);
+      queryClient.invalidateQueries(["tasks"]);
+      setIsEditing(false);
+      Swal.fire({
+        title: "Updated!",
+        text: "Task has been updated successfully!",
+        icon: "success",
+        confirmButtonColor: "#3085d6",
+        confirmButtonText: "OK",
+      });
+    },
+  });
 
   return (
     <>
@@ -61,8 +106,12 @@ const TaskCard = ({ task, index, onTaskUpdate, onTaskDelete }) => {
                   <button onClick={() => setIsEditing(true)} className="text-gray-400 hover:text-blue-500">
                     <PencilIcon className="h-4 w-4" />
                   </button>
-                  <button onClick={handleDelete} disabled={loading} className="text-gray-400 hover:text-red-500">
-                    {loading ? (
+                  <button
+                    onClick={() => deleteMutation.mutate()}
+                    disabled={deleteMutation.isLoading}
+                    className="text-gray-400 hover:text-red-500"
+                  >
+                    {deleteMutation.isLoading ? (
                       <Oval height={20} width={20} color="#ff6347" />
                     ) : (
                       <TrashIcon className="h-4 w-4" />
@@ -111,8 +160,12 @@ const TaskCard = ({ task, index, onTaskUpdate, onTaskDelete }) => {
               <button onClick={() => setIsEditing(false)} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
                 Cancel
               </button>
-              <button onClick={handleUpdate} disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                {loading ? (
+              <button
+                onClick={() => updateMutation.mutate()}
+                disabled={updateMutation.isLoading}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                {updateMutation.isLoading ? (
                   <Oval height={20} width={20} color="#fff" />
                 ) : (
                   "Update"
